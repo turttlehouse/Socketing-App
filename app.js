@@ -52,15 +52,74 @@ io.on('connection',(socket)=>{
             const messages = await Message.find();
             io.emit('response',{
                 status:200,
-                message : 'messages fetched',
+                message : 'messages sent successfully',
                 data : messages
             })
         }
         catch(err){
             io.emit('response',{
                 status:500,
-                message : 'failed to fetch message',
+                message : 'failed to send messages',
             })
+        }
+    })
+
+    //Get Single Message
+    socket.on('getMessage',async(data)=>{
+        try {
+            const {id} = data;
+            const message = await Message.findById(id);
+            io.emit('response',{
+                status:200,
+                message : 'single message sent successfully',
+                data : message
+            })
+            
+        } catch (error) {
+            io.emit('response',{
+                status:500,
+                message : 'failed to send single message',
+            })
+            
+        }
+    })
+
+    //Update Message
+    socket.on('updateMessage',async(data)=>{
+        try {
+            const {id,message} = data;
+            const updatedMessage = await Message.findByIdAndUpdate(id,{message},{new:true});
+            io.emit('response',{
+                status:200,
+                message : 'message updated successfully',
+                data : updatedMessage
+            })
+            
+        } catch (error) {
+            io.emit('response',{
+                status:500,
+                message : 'failed to update message',
+            })
+            
+        }
+    })
+
+    //Delete Message
+    socket.on('deleteMessage',async(data)=>{
+        try {
+            const {id} = data
+            await Message.findByIdAndDelete(id);
+            io.emit('response',{
+                status : 200,
+                message : 'message deleted successfully'
+            })
+            
+        } catch (error) {
+            io.emit('response',{
+                status : 500,
+                message : 'failed to delete message'
+            })
+            
         }
     })
 })
