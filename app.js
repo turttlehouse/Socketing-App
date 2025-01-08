@@ -2,21 +2,65 @@ const express = require('express')
 const app = express();
 const {Server} = require('socket.io');
 const ConnectToDb = require('./database');
+const Message = require('./model/messageModel');
 
 ConnectToDb();
 
-//first ma http connection needed webscoket connection ko lagi 
 const server = app.listen(5000,(req,res)=>{
     console.log('Server is running on port 5000')
 })
 
-const io = new Server(server) //2nd argument vaneko cors ko lagi hunxa
+//2nd argument for cors
+const io = new Server(server) 
 
 io.on('connection',(socket)=>{
-    //client ko information haru socket bata aaucha
-    //but chaine vaneko client ko id ho
-    // console.log(socket);
-    // console.log(socket);
-    console.log(socket.id);
-    console.log('someone made connection to the websocket')
-}) 
+    console.log('user connected');
+
+    //Add message
+    socket.on('Addmessage',async(data)=>{
+        // console.log(data);
+        try{
+            if(data){
+                const {message} = data;
+                const newMessage = await Message.create({
+                    message
+                })
+                
+                //socket.emit('response',newMessage) to send to only sender
+
+                //io.emit('response',newMessage) to send to all connected users
+                io.emit('response',{
+                    status : '200',
+                    message : 'Message received',
+                    data : newMessage
+                })
+            }
+        }
+        catch(err){
+            io.emit('response',{
+                status :'500',
+                message : 'Message not received',
+            })
+        }
+
+
+    })
+
+    //Get All Messages
+    socket.on("getMessages",async()=>{
+        try{
+            const messages = await Message.find();
+            io.emit('response',{
+                status:200,
+                message : 'messages fetched',
+                data : messages
+            })
+        }
+        catch(err){
+            io.emit('response',{
+                status:500,
+                message : 'failed to fetch message',
+            })
+        }
+    })
+})
