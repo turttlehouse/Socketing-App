@@ -1,6 +1,9 @@
 const express = require('express')
 const app = express();
-const {Server} = require('socket.io')
+const {Server} = require('socket.io');
+const ConnectToDb = require('./database');
+
+ConnectToDb();
 
 //first ma http connection needed webscoket connection ko lagi 
 const server = app.listen(5000,(req,res)=>{
